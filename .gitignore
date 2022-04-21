@@ -1,0 +1,7 @@
+*.png
+csv/*.csv
+*.csv
+*.pcap
+*.pcapng
+*.pdf
+postup.txt
