@@ -27,6 +27,9 @@ def load_array(data):
             count = 0
             # přiřazení do pole
     # TODO udělat to pro poslední epochu
+    return packets_in_epoch, epochs
+
+
 
 
 # 1) Loading the CSV file
@@ -37,7 +40,7 @@ file.close()
 print(data)
 
 # 2) Vytvoření pole, kde bude počet paketů za 5 minut, epochs[i]*5 určuje čas v minutách
-packets_in_epoch = load_array(data)
+packets_in_epoch, epochs = load_array(data)
 print(packets_in_epoch)
 print(len(packets_in_epoch) == len(epochs))
 

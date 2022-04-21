@@ -4,4 +4,4 @@ csv/*.csv
 *.pcap
 *.pcapng
 *.pdf
-postup.txt
+pds postup.txt
