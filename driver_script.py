@@ -1,12 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-# 1) načíst csv
-# 2) vytvořit pole, kde bude počet paketů za 5 minut
-# 3) 3 sigma rule na tomhle poli packets_in_epoch
-# 4) načtení testovacího setu to_m a from_m stejnym způsobem a zjištění False positives atd.
-# *5) DDOS simulace
-# 6) vykreslení výsledků (i těch dropnutých)
+# This script does 6 tasks:
+#   1) Loads dataset from csv
+#   2) Creates list with number of packets in 5 minute windows
+#   3) Trains 3 sigma rule "classificator" on this list
+#   4) Load testing set direction: to_master a from_master and checks if it's classified correctly
+#   *5) DDOS simulation
+#   6) Plotting of the results
 
 
 def load_array(data):
@@ -17,25 +18,22 @@ def load_array(data):
     epoch = 0  # epoch = 5 minute window
     for pkt_t in data:
         time += pkt_t[0]  # time accumulation
-        count += 1  # akumulace počtu paketů za 5 minut
+        count += 1  # accumulation of the # of packets in 5 minute window
         if(time >= 300):
             time = 0
             epoch += 1
             packets_in_epoch.append(count)
-            # TODO je tohle potřeba? můžu to brát jako index...
             epochs.append(epoch)
             count = 0
-            # přiřazení do pole
-    # TODO udělat to pro poslední epochu
+
+    # TODO do it for the last epoch
     return packets_in_epoch, epochs
+
 
 # Detecting anomalies with some lambda magic
 
-
 def detect_anomaly(array, lower_bound, upper_bound):
-    # TODO do it better, detect the indexes so we can drop the packets
     def f(x): return x < lower_bound or x > upper_bound
-    # getting the anomalous packets (false negatives in this case) | TODO get their index!!!!
     anomalies = np.array([xi for xi in array if f(xi) == True])
     return anomalies
 
@@ -49,20 +47,20 @@ file = open(train_file, 'rb')
 training_data = np.loadtxt(file, delimiter=",", skiprows=1)
 file.close()
 
-# 2) Vytvoření pole, kde bude počet paketů za 5 minut, epochs[i]*5 určuje čas v minutách
+# 2) List with # of packets in 5 min window, epochs[i]*5 = time in minutes
 packets_in_epoch, epochs = load_array(training_data)
-time_windows_min = [epoch*300/60 for epoch in epochs]  # epochy v minutách
+time_windows_min = [epoch*300/60 for epoch in epochs]  # epochs in minutes
 
 # 3) 3 sigma rule on packets_in_epoch
 
-# mean and standard deviation of the dataset (# of packets in 5 minute windows)
+# The mean and standard deviation of the dataset (# of packets in 5 minute windows)
 mean = np.mean(packets_in_epoch)
 sigma = np.std(packets_in_epoch)
 
-lower_bound = mean - 3*sigma  # 3 sigma rule bounds
+lower_bound = mean - 3*sigma  # 3 sigma rule bounds "The Classificator"
 upper_bound = mean + 3*sigma
 
-# 4) Loading testing dataset and counting False Positives etc.
+# 4) Loading testing dataset and counting False Negatives etc.
 
 file = open(test_file, 'rb')
 testing_data = np.loadtxt(file, delimiter=",", skiprows=1)
@@ -84,17 +82,18 @@ file.close()
 anomalous_packets_in_epoch, anomalous_epochs = load_array(anomalous_data)
 anomalous_time_windows_min = [epoch*300/60 for epoch in anomalous_epochs]
 
-# Detect if there are any false negatives in the testing set
+# Detect anomalies
 anomalies = detect_anomaly(
     anomalous_packets_in_epoch, lower_bound, upper_bound)
 print(anomalies)
 
+# Drop the anomalous packets / simulate packet filtering
 for i, x in enumerate(anomalous_packets_in_epoch):
     if x in anomalies:
-        anomalous_packets_in_epoch[i] = 1
+        anomalous_packets_in_epoch[i] = 1 # Should be 0, but 1 is more visible on the graphical plot
 print(anomalous_packets_in_epoch)
 
-# 6) Plotting the results
+# 6) Plotting the results in Czech
 
 plt.style.use('_mpl-gallery')
 fig, ax = plt.subplots(figsize=(12, 8), dpi=150, layout='constrained')
@@ -108,4 +107,4 @@ ax.set_ylabel('Počet paketů')
 ax.set_title("Počet paketů v čase (směr [FROM_MASTER])")
 ax.legend()
 
-plt.savefig("FIG2.png")
+plt.savefig("FIG.png")

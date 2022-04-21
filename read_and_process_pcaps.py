@@ -4,7 +4,7 @@ from scapy.all import *
 
 packets = rdpcap("./mega104-17-12-18_FILTERED.pcapng")
 
-# Zajímá mě velikost paketu, a inter-arival time (v obozu směrech), rozdělit to na TOMASTER a FROMMASTER, najít splitpointy
+# We are interested in inter-arrival time of packets (and maybe their size?), split it to direction FROM MASTER and TO MASTER
 packets_len = len(packets)
 
 f = open('packets_to_m.csv', 'w')
